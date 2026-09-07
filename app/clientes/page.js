@@ -9,6 +9,32 @@ const STATUS = ['lead', 'em negociacao', 'cliente ativo', 'inativo']
 const ESTADOS_CIVIS = ['Solteiro(a)', 'Casado(a)', 'Divorciado(a)', 'Viuvo(a)', 'Uniao estavel']
 const ESTADOS_BR = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']
 
+const lbl = { display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '4px' }
+const inp = { width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', background: '#fff', color: '#111827' }
+const sec = { fontSize: '13px', fontWeight: '600', color: '#0F6E56', marginBottom: '12px', paddingBottom: '6px', borderBottom: '1px solid #e5e7eb' }
+
+function Input({ label, field, value, onChange, type = 'text', placeholder = '' }) {
+  return (
+    <div>
+      <label style={lbl}>{label}</label>
+      <input type={type} value={value} onChange={e => onChange(field, e.target.value)} placeholder={placeholder}
+        style={inp} />
+    </div>
+  )
+}
+
+function Select({ label, field, value, onChange, options }) {
+  return (
+    <div>
+      <label style={lbl}>{label}</label>
+      <select value={value} onChange={e => onChange(field, e.target.value)} style={inp}>
+        <option value="">Selecione...</option>
+        {options.map(o => <option key={o} value={o}>{o}</option>)}
+      </select>
+    </div>
+  )
+}
+
 export default function Clientes() {
   const [clientes, setClientes] = useState([])
   const [carregando, setCarregando] = useState(true)
@@ -82,32 +108,6 @@ export default function Clientes() {
     return c.tipo_pessoa === 'PJ' ? (c.razao_social || '') : (c.nome_completo || '')
   }
 
-  function Input({ label, field, type = 'text', placeholder = '' }) {
-    return (
-      <div>
-        <label style={lbl}>{label}</label>
-        <input type={type} value={form[field]} onChange={e => set(field, e.target.value)} placeholder={placeholder}
-          style={inp} />
-      </div>
-    )
-  }
-
-  function Select({ label, field, options }) {
-    return (
-      <div>
-        <label style={lbl}>{label}</label>
-        <select value={form[field]} onChange={e => set(field, e.target.value)} style={inp}>
-          <option value="">Selecione...</option>
-          {options.map(o => <option key={o} value={o}>{o}</option>)}
-        </select>
-      </div>
-    )
-  }
-
-  const lbl = { display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '4px' }
-  const inp = { width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', background: '#fff' }
-  const sec = { fontSize: '13px', fontWeight: '600', color: '#0F6E56', marginBottom: '12px', paddingBottom: '6px', borderBottom: '1px solid #e5e7eb' }
-
   return (
     <Layout titulo="Clientes" botaoAcao={{ label: 'Novo cliente', onClick: () => setMostrarForm(true) }}>
 
@@ -146,12 +146,12 @@ export default function Clientes() {
                 <div style={{ marginBottom: '24px' }}>
                   <p style={sec}>Identificacao — Pessoa Juridica</p>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <Input label="Razao social *" field="razao_social" />
-                    <Input label="Nome fantasia" field="nome_fantasia" />
-                    <Input label="CNPJ" field="cnpj" placeholder="00.000.000/0000-00" />
+                    <Input label="Razao social *" field="razao_social" value={form.razao_social} onChange={set} />
+                    <Input label="Nome fantasia" field="nome_fantasia" value={form.nome_fantasia} onChange={set} />
+                    <Input label="CNPJ" field="cnpj" value={form.cnpj} onChange={set} placeholder="00.000.000/0000-00" />
                     <div />
-                    <Input label="Nome do representante legal" field="representante_nome" />
-                    <Input label="CPF do representante" field="representante_cpf" placeholder="000.000.000-00" />
+                    <Input label="Nome do representante legal" field="representante_nome" value={form.representante_nome} onChange={set} />
+                    <Input label="CPF do representante" field="representante_cpf" value={form.representante_cpf} onChange={set} placeholder="000.000.000-00" />
                   </div>
                 </div>
               )}
@@ -161,11 +161,11 @@ export default function Clientes() {
                 <div style={{ marginBottom: '24px' }}>
                   <p style={sec}>Identificacao — Pessoa Fisica</p>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <Input label="Nome completo *" field="nome_completo" />
-                    <Input label="CPF" field="cpf" placeholder="000.000.000-00" />
-                    <Input label="Nacionalidade" field="nacionalidade" />
-                    <Select label="Estado civil" field="estado_civil" options={ESTADOS_CIVIS} />
-                    <Input label="Profissao" field="profissao" />
+                    <Input label="Nome completo *" field="nome_completo" value={form.nome_completo} onChange={set} />
+                    <Input label="CPF" field="cpf" value={form.cpf} onChange={set} placeholder="000.000.000-00" />
+                    <Input label="Nacionalidade" field="nacionalidade" value={form.nacionalidade} onChange={set} />
+                    <Select label="Estado civil" field="estado_civil" value={form.estado_civil} onChange={set} options={ESTADOS_CIVIS} />
+                    <Input label="Profissao" field="profissao" value={form.profissao} onChange={set} />
                   </div>
                 </div>
               )}
@@ -179,11 +179,11 @@ export default function Clientes() {
                     <input value={form.cep} onChange={e => { set('cep', e.target.value); buscarCep(e.target.value) }}
                       placeholder="00000-000" style={inp} />
                   </div>
-                  <Input label="Logradouro" field="logradouro" />
-                  <Input label="Numero" field="numero" />
-                  <Input label="Complemento" field="complemento" />
-                  <Input label="Bairro" field="bairro" />
-                  <Input label="Cidade" field="cidade" />
+                  <Input label="Logradouro" field="logradouro" value={form.logradouro} onChange={set} />
+                  <Input label="Numero" field="numero" value={form.numero} onChange={set} />
+                  <Input label="Complemento" field="complemento" value={form.complemento} onChange={set} />
+                  <Input label="Bairro" field="bairro" value={form.bairro} onChange={set} />
+                  <Input label="Cidade" field="cidade" value={form.cidade} onChange={set} />
                   <div>
                     <label style={lbl}>Estado</label>
                     <select value={form.estado} onChange={e => set('estado', e.target.value)} style={inp}>
@@ -198,9 +198,9 @@ export default function Clientes() {
               <div style={{ marginBottom: '24px' }}>
                 <p style={sec}>Contato</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <Input label="E-mail" field="email" type="email" />
-                  <Input label="Telefone / WhatsApp" field="telefone" placeholder="(00) 00000-0000" />
-                  {tipoPessoa === 'PJ' && <Input label="Pessoa de contato" field="pessoa_contato" />}
+                  <Input label="E-mail" field="email" value={form.email} onChange={set} type="email" />
+                  <Input label="Telefone / WhatsApp" field="telefone" value={form.telefone} onChange={set} placeholder="(00) 00000-0000" />
+                  {tipoPessoa === 'PJ' && <Input label="Pessoa de contato" field="pessoa_contato" value={form.pessoa_contato} onChange={set} />}
                 </div>
               </div>
 
@@ -208,9 +208,9 @@ export default function Clientes() {
               <div style={{ marginBottom: '24px' }}>
                 <p style={sec}>Dados comerciais</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <Select label="Origem do lead" field="origem_lead" options={ORIGENS} />
-                  <Select label="Status" field="status" options={STATUS} />
-                  <Input label="Responsavel interno" field="responsavel" />
+                  <Select label="Origem do lead" field="origem_lead" value={form.origem_lead} onChange={set} options={ORIGENS} />
+                  <Select label="Status" field="status" value={form.status} onChange={set} options={STATUS} />
+                  <Input label="Responsavel interno" field="responsavel" value={form.responsavel} onChange={set} />
                 </div>
               </div>
 
