@@ -13,7 +13,7 @@ export default function Home() {
       router.replace(session ? '/dashboard' : '/login')
     }
     decidirRota()
-  }, [])
+  }, [router])
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', fontFamily: 'sans-serif' }}>

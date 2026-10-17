@@ -159,13 +159,13 @@ export default function Dashboard() {
   return (
     <Layout
       titulo="Painel"
-      botaoAcao={{ label: 'Novo processo', onClick: () => router.push('/processos?novo=1') }}
+      botaoAcao={{ label: 'Novo processo', onClick: () => router.push('/processos/novo') }}
     >
       <PageHeader
         titulo="Painel operacional"
         descricao="Visão consolidada da carteira de marcas, prazos do INPI e produtividade da equipe."
       >
-        <button onClick={() => router.push('/processos?novo=1')} style={{ ...estilo.botaoPrimario, padding: '8px 14px' }}>
+        <button onClick={() => router.push('/processos/novo')} style={{ ...estilo.botaoPrimario, padding: '8px 14px' }}>
           + Novo processo
         </button>
       </PageHeader>
