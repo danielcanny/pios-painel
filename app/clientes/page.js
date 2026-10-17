@@ -3,15 +3,24 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
 import Layout from '../components/Layout'
+import PageHeader from '../components/PageHeader'
+import { cor, estilo } from '../../lib/tema'
 
 const ORIGENS = ['Indicacao', 'Site', 'Instagram', 'Parceiro contador', 'Google', 'Outro']
 const STATUS = ['lead', 'em negociacao', 'cliente ativo', 'inativo']
 const ESTADOS_CIVIS = ['Solteiro(a)', 'Casado(a)', 'Divorciado(a)', 'Viuvo(a)', 'Uniao estavel']
 const ESTADOS_BR = ['AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO']
 
-const lbl = { display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '4px' }
-const inp = { width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', background: '#fff', color: '#111827' }
-const sec = { fontSize: '13px', fontWeight: '600', color: '#0F6E56', marginBottom: '12px', paddingBottom: '6px', borderBottom: '1px solid #e5e7eb' }
+const lbl = estilo.label
+const inp = estilo.input
+const sec = estilo.secao
+
+const STATUS_CLIENTE = {
+  'lead': { bg: cor.primarioSuave, texto: cor.primarioLink },
+  'em negociacao': { bg: cor.alertaSuave, texto: cor.alertaTexto },
+  'cliente ativo': { bg: cor.sucessoSuave, texto: cor.sucessoTexto },
+  'inativo': { bg: cor.fundoSuave, texto: cor.textoSec },
+}
 
 function Input({ label, field, value, onChange, type = 'text', placeholder = '' }) {
   return (
@@ -40,7 +49,7 @@ export default function Clientes() {
   const [carregando, setCarregando] = useState(true)
   const [mostrarForm, setMostrarForm] = useState(false)
   const [salvando, setSalvando] = useState(false)
-  const [busca, setBusca] = useState(false)
+  const [busca, setBusca] = useState('')
   const [tipoPessoa, setTipoPessoa] = useState('PJ')
   const [form, setForm] = useState({
     tipo_pessoa: 'PJ',
@@ -111,19 +120,16 @@ export default function Clientes() {
   return (
     <Layout titulo="Clientes" botaoAcao={{ label: 'Novo cliente', onClick: () => setMostrarForm(true) }}>
 
-      <div style={{ marginBottom: '24px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>Clientes</h1>
-        <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>Gerencie sua carteira de clientes.</p>
-      </div>
+      <PageHeader titulo="Clientes" descricao="Gerencie sua carteira de clientes." />
 
       {/* Modal de cadastro */}
       {mostrarForm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 50, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '32px 16px', overflowY: 'auto' }}>
-          <div style={{ background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '720px', padding: '32px', position: 'relative' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(18,18,20,0.45)', zIndex: 50, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '32px 16px', overflowY: 'auto' }}>
+          <div style={{ background: cor.card, borderRadius: '16px', width: '100%', maxWidth: '720px', padding: '32px', position: 'relative' }}>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#1f2937', margin: 0 }}>Novo Cliente</h2>
-              <button onClick={() => setMostrarForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#9ca3af' }}>x</button>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', color: cor.texto, margin: 0 }}>Novo cliente</h2>
+              <button onClick={() => setMostrarForm(false)} aria-label="Fechar" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: cor.textoSec }}>x</button>
             </div>
 
             <form onSubmit={salvar}>
@@ -134,7 +140,7 @@ export default function Clientes() {
                 <div style={{ display: 'flex', gap: '12px' }}>
                   {['PJ', 'PF'].map(t => (
                     <button key={t} type="button" onClick={() => setTipoPessoa(t)}
-                      style={{ padding: '8px 24px', borderRadius: '8px', border: '2px solid', borderColor: tipoPessoa === t ? '#0F6E56' : '#e5e7eb', background: tipoPessoa === t ? '#0F6E56' : '#fff', color: tipoPessoa === t ? '#fff' : '#374151', fontWeight: '500', cursor: 'pointer', fontSize: '14px' }}>
+                      style={{ padding: '8px 24px', borderRadius: '8px', border: '1px solid', borderColor: tipoPessoa === t ? cor.primario : cor.borda, background: tipoPessoa === t ? cor.primario : cor.card, color: tipoPessoa === t ? cor.primarioTexto : cor.texto, fontWeight: '500', cursor: 'pointer', fontSize: '14px', fontFamily: 'inherit' }}>
                       {t === 'PJ' ? 'Pessoa Juridica' : 'Pessoa Fisica'}
                     </button>
                   ))}
@@ -224,12 +230,11 @@ export default function Clientes() {
 
               {/* Botoes */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                <button type="button" onClick={() => setMostrarForm(false)}
-                  style={{ padding: '9px 20px', border: '1px solid #e5e7eb', borderRadius: '8px', background: '#fff', fontSize: '14px', cursor: 'pointer', color: '#374151' }}>
+                <button type="button" onClick={() => setMostrarForm(false)} style={estilo.botaoSecundario}>
                   Cancelar
                 </button>
                 <button type="submit" disabled={salvando}
-                  style={{ padding: '9px 24px', border: 'none', borderRadius: '8px', background: '#0F6E56', color: '#fff', fontSize: '14px', fontWeight: '500', cursor: 'pointer', opacity: salvando ? 0.6 : 1 }}>
+                  style={{ ...estilo.botaoPrimario, padding: '9px 24px', opacity: salvando ? 0.6 : 1 }}>
                   {salvando ? 'Salvando...' : 'Salvar cliente'}
                 </button>
               </div>
@@ -239,60 +244,70 @@ export default function Clientes() {
       )}
 
       {/* Lista */}
-      <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-        <div style={{ padding: '12px 16px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <div style={{ ...estilo.cartao, overflow: 'hidden' }}>
+        <div style={{ padding: '12px 16px', borderBottom: `1px solid ${cor.borda}`, display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={cor.textoClaro} strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
           <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Buscar por nome ou e-mail..."
-            style={{ flex: 1, border: 'none', outline: 'none', fontSize: '14px', fontFamily: 'inherit' }} />
-          <span style={{ fontSize: '13px', color: '#9ca3af' }}>{clientesFiltrados.length} cliente(s)</span>
+            style={{ flex: 1, border: 'none', outline: 'none', fontSize: '14px', fontFamily: 'inherit', color: cor.texto, background: 'transparent' }} />
         </div>
 
         {carregando ? (
-          <p style={{ padding: '24px', color: '#9ca3af', fontSize: '14px' }}>Carregando...</p>
+          <p style={{ padding: '24px', color: cor.textoSec, fontSize: '14px', margin: 0 }}>Carregando...</p>
         ) : clientesFiltrados.length === 0 ? (
           <div style={{ padding: '48px', textAlign: 'center' }}>
-            <p style={{ color: '#9ca3af', fontSize: '14px' }}>Nenhum cliente encontrado.</p>
-            <button onClick={() => setMostrarForm(true)} style={{ marginTop: '12px', color: '#0F6E56', background: 'none', border: 'none', fontSize: '14px', cursor: 'pointer', fontWeight: '500' }}>
+            <p style={{ color: cor.textoSec, fontSize: '14px', margin: 0 }}>Nenhum cliente encontrado.</p>
+            <button onClick={() => setMostrarForm(true)} style={{ marginTop: '12px', color: cor.primarioLink, background: 'none', border: 'none', fontSize: '14px', cursor: 'pointer', fontWeight: '500', fontFamily: 'inherit' }}>
               + Cadastrar primeiro cliente
             </button>
           </div>
         ) : (
+          <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
-              <tr style={{ background: '#f9fafb' }}>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: '500', color: '#6b7280', fontSize: '13px' }}>Nome</th>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: '500', color: '#6b7280', fontSize: '13px' }}>Tipo</th>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: '500', color: '#6b7280', fontSize: '13px' }}>E-mail</th>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: '500', color: '#6b7280', fontSize: '13px' }}>Status</th>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: '500', color: '#6b7280', fontSize: '13px' }}>Cidade</th>
-                <th style={{ padding: '12px 16px' }}></th>
+              <tr style={{ background: cor.fundo, borderBottom: `1px solid ${cor.borda}` }}>
+                <th style={estilo.th}>Nome</th>
+                <th style={estilo.th}>Tipo</th>
+                <th style={estilo.th}>E-mail</th>
+                <th style={estilo.th}>Status</th>
+                <th style={estilo.th}>Cidade</th>
+                <th style={estilo.th}></th>
               </tr>
             </thead>
             <tbody>
-              {clientesFiltrados.map((c, i) => (
-                <tr key={c.id} style={{ borderTop: '1px solid #f3f4f6', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                  <td style={{ padding: '12px 16px', fontWeight: '500', color: '#1f2937' }}>{nomeCliente(c)}</td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <span style={{ fontSize: '12px', padding: '2px 8px', borderRadius: '99px', background: c.tipo_pessoa === 'PJ' ? '#eff6ff' : '#f0fdf4', color: c.tipo_pessoa === 'PJ' ? '#2563eb' : '#16a34a', fontWeight: '500' }}>
+              {clientesFiltrados.map((c) => {
+                const corStatus = STATUS_CLIENTE[c.status] || STATUS_CLIENTE['inativo']
+                return (
+                <tr key={c.id} style={{ borderTop: `1px solid ${cor.borda}` }}>
+                  <td style={{ ...estilo.td, fontWeight: '500', color: cor.texto }}>{nomeCliente(c)}</td>
+                  <td style={estilo.td}>
+                    <span style={{ fontSize: '12px', padding: '2px 8px', borderRadius: '99px', background: cor.fundoSuave, color: cor.textoSec, fontWeight: '500' }}>
                       {c.tipo_pessoa}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 16px', color: '#6b7280' }}>{c.email}</td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <span style={{ fontSize: '12px', padding: '2px 8px', borderRadius: '99px', background: c.status === 'cliente ativo' ? '#f0fdf4' : '#f9fafb', color: c.status === 'cliente ativo' ? '#16a34a' : '#6b7280', fontWeight: '500' }}>
+                  <td style={{ ...estilo.td, color: cor.textoSec }}>{c.email}</td>
+                  <td style={estilo.td}>
+                    <span style={{ fontSize: '12px', padding: '2px 10px', borderRadius: '99px', background: corStatus.bg, color: corStatus.texto, fontWeight: '500', whiteSpace: 'nowrap' }}>
                       {c.status}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 16px', color: '#6b7280' }}>{c.cidade}</td>
-                  <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                    <button onClick={() => excluir(c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '13px', fontWeight: '500' }}>
+                  <td style={{ ...estilo.td, color: cor.textoSec }}>{c.cidade}</td>
+                  <td style={{ ...estilo.td, textAlign: 'right' }}>
+                    <button onClick={() => excluir(c.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: cor.perigoTexto, fontSize: '13px', fontWeight: '500', fontFamily: 'inherit' }}>
                       Excluir
                     </button>
                   </td>
                 </tr>
-              ))}
+                )
+              })}
             </tbody>
           </table>
+          </div>
+        )}
+
+        {!carregando && clientesFiltrados.length > 0 && (
+          <div style={{ padding: '12px 16px', borderTop: `1px solid ${cor.borda}`, fontSize: '13px', color: cor.textoSec }}>
+            Exibindo <strong style={{ color: cor.texto }}>{clientesFiltrados.length}</strong> de {clientes.length} clientes
+          </div>
         )}
       </div>
     </Layout>

@@ -3,21 +3,17 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
 import Layout from '../components/Layout'
+import PageHeader from '../components/PageHeader'
+import StatusBadge from '../components/StatusBadge'
+import Avatar from '../components/Avatar'
+import { cor, fonte, estilo, STATUS_PROCESSO, STATUS_PADRAO } from '../../lib/tema'
 
 const NATUREZAS = ['Nominativa', 'Mista', 'Figurativa']
 const STATUS_OPCOES = ['Em andamento', 'Prazo vencido', 'Requer atenção', 'Arquivado', 'Concluído']
 
-const STATUS_CORES = {
-  'Em andamento': { bg: '#eff6ff', color: '#2563eb' },
-  'Prazo vencido': { bg: '#fef2f2', color: '#dc2626' },
-  'Requer atenção': { bg: '#fff7ed', color: '#ea580c' },
-  'Arquivado': { bg: '#f9fafb', color: '#6b7280' },
-  'Concluído': { bg: '#f0fdf4', color: '#16a34a' },
-}
-
-const lbl = { display: 'block', fontSize: '13px', fontWeight: '500', color: '#374151', marginBottom: '4px' }
-const inp = { width: '100%', padding: '8px 12px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit', background: '#fff', color: '#111827' }
-const sec = { fontSize: '13px', fontWeight: '600', color: '#0F6E56', marginBottom: '12px', paddingBottom: '6px', borderBottom: '1px solid #e5e7eb' }
+const lbl = estilo.label
+const inp = estilo.input
+const sec = estilo.secao
 
 function Input({ label, field, value, onChange, type = 'text', placeholder = '' }) {
   return (
@@ -66,15 +62,15 @@ function ClienteAutocomplete({ clientes, value, onSelect }) {
         style={inp}
       />
       {aberto && filtrados.length > 0 && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 10, boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
+        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: cor.card, border: `1px solid ${cor.borda}`, borderRadius: '8px', marginTop: '4px', maxHeight: '200px', overflowY: 'auto', zIndex: 10, boxShadow: '0 4px 12px rgba(15,23,42,0.10)' }}>
           {filtrados.map(c => (
             <div key={c.id}
               onMouseDown={() => { onSelect(c.id); setAberto(false) }}
-              style={{ padding: '8px 12px', fontSize: '14px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
-              onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
-              onMouseLeave={e => e.currentTarget.style.background = '#fff'}>
-              <div style={{ fontWeight: '500', color: '#1f2937' }}>{nomeCliente(c)}</div>
-              <div style={{ fontSize: '12px', color: '#9ca3af' }}>{c.tipo_pessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'}</div>
+              style={{ padding: '8px 12px', fontSize: '14px', cursor: 'pointer', borderBottom: `1px solid ${cor.fundoSuave}` }}
+              onMouseEnter={e => e.currentTarget.style.background = cor.fundo}
+              onMouseLeave={e => e.currentTarget.style.background = cor.card}>
+              <div style={{ fontWeight: '500', color: cor.texto }}>{nomeCliente(c)}</div>
+              <div style={{ fontSize: '12px', color: cor.textoSec }}>{c.tipo_pessoa === 'PJ' ? 'Pessoa Jurídica' : 'Pessoa Física'}</div>
             </div>
           ))}
         </div>
@@ -83,21 +79,12 @@ function ClienteAutocomplete({ clientes, value, onSelect }) {
   )
 }
 
-function Avatar({ nome }) {
-  const iniciais = (nome || '?').split(/[\s@.]+/).filter(Boolean).slice(0, 2).map(p => p[0]).join('').toUpperCase()
-  return (
-    <span style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#0F6E56', color: '#fff', fontSize: '11px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-      {iniciais}
-    </span>
-  )
-}
-
-function BarraEtapa({ etapaOrdem, totalEtapas }) {
+function BarraEtapa({ etapaOrdem, totalEtapas, corAtiva }) {
   const blocos = Array.from({ length: totalEtapas }, (_, i) => i < etapaOrdem)
   return (
     <div style={{ display: 'flex', gap: '3px' }}>
       {blocos.map((ativo, i) => (
-        <span key={i} style={{ width: '18px', height: '5px', borderRadius: '2px', background: ativo ? '#0F6E56' : '#e5e7eb' }} />
+        <span key={i} style={{ width: '18px', height: '5px', borderRadius: '2px', background: ativo ? corAtiva : cor.borda }} />
       ))}
     </div>
   )
@@ -209,21 +196,19 @@ export default function Processos() {
   return (
     <Layout titulo="Processos" botaoAcao={{ label: 'Novo processo', onClick: abrirNovo }}>
 
-      <div style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>Processos</h1>
-          <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '4px' }}>Carteira completa de pedidos e registros de marca, com etapa atual, prazo vigente e responsável.</p>
-        </div>
-      </div>
+      <PageHeader
+        titulo="Processos"
+        descricao="Carteira completa de pedidos e registros de marca, com etapa atual, prazo vigente e responsável."
+      />
 
       {/* Modal de cadastro */}
       {mostrarForm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 50, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '32px 16px', overflowY: 'auto' }}>
-          <div style={{ background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '720px', padding: '32px', position: 'relative' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(18,18,20,0.45)', zIndex: 50, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '32px 16px', overflowY: 'auto' }}>
+          <div style={{ background: cor.card, borderRadius: '16px', width: '100%', maxWidth: '720px', padding: '32px', position: 'relative' }}>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#1f2937', margin: 0 }}>Novo Processo</h2>
-              <button onClick={() => setMostrarForm(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: '#9ca3af' }}>x</button>
+              <h2 style={{ fontSize: '18px', fontWeight: '600', color: cor.texto, margin: 0 }}>Novo processo</h2>
+              <button onClick={() => setMostrarForm(false)} aria-label="Fechar" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: cor.textoSec }}>x</button>
             </div>
 
             <form onSubmit={salvar}>
@@ -263,12 +248,11 @@ export default function Processos() {
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                <button type="button" onClick={() => setMostrarForm(false)}
-                  style={{ padding: '9px 20px', border: '1px solid #e5e7eb', borderRadius: '8px', background: '#fff', fontSize: '14px', cursor: 'pointer', color: '#374151' }}>
+                <button type="button" onClick={() => setMostrarForm(false)} style={estilo.botaoSecundario}>
                   Cancelar
                 </button>
                 <button type="submit" disabled={salvando}
-                  style={{ padding: '9px 24px', border: 'none', borderRadius: '8px', background: '#0F6E56', color: '#fff', fontSize: '14px', fontWeight: '500', cursor: 'pointer', opacity: salvando ? 0.6 : 1 }}>
+                  style={{ ...estilo.botaoPrimario, padding: '9px 24px', opacity: salvando ? 0.6 : 1 }}>
                   {salvando ? 'Salvando...' : 'Salvar processo'}
                 </button>
               </div>
@@ -278,78 +262,76 @@ export default function Processos() {
       )}
 
       {/* Lista */}
-      <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e5e7eb', overflow: 'hidden' }}>
-        <div style={{ padding: '12px 16px', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <div style={{ ...estilo.cartao, overflow: 'hidden' }}>
+        <div style={{ padding: '12px 16px', borderBottom: `1px solid ${cor.borda}`, display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={cor.textoClaro} strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
           <input value={busca} onChange={e => setBusca(e.target.value)} placeholder="Marca, nº do processo ou titular..."
-            style={{ flex: 1, border: 'none', outline: 'none', fontSize: '14px', fontFamily: 'inherit' }} />
-          <span style={{ fontSize: '13px', color: '#9ca3af' }}>{processosFiltrados.length} processo(s)</span>
+            style={{ flex: 1, border: 'none', outline: 'none', fontSize: '14px', fontFamily: 'inherit', color: cor.texto, background: 'transparent' }} />
         </div>
 
         {carregando ? (
-          <p style={{ padding: '24px', color: '#9ca3af', fontSize: '14px' }}>Carregando...</p>
+          <p style={{ padding: '24px', color: cor.textoSec, fontSize: '14px', margin: 0 }}>Carregando...</p>
         ) : processosFiltrados.length === 0 ? (
           <div style={{ padding: '48px', textAlign: 'center' }}>
-            <p style={{ color: '#9ca3af', fontSize: '14px' }}>Nenhum processo encontrado.</p>
-            <button onClick={abrirNovo} style={{ marginTop: '12px', color: '#0F6E56', background: 'none', border: 'none', fontSize: '14px', cursor: 'pointer', fontWeight: '500' }}>
+            <p style={{ color: cor.textoSec, fontSize: '14px', margin: 0 }}>Nenhum processo encontrado.</p>
+            <button onClick={abrirNovo} style={{ marginTop: '12px', color: cor.primarioLink, background: 'none', border: 'none', fontSize: '14px', cursor: 'pointer', fontWeight: '500', fontFamily: 'inherit' }}>
               + Cadastrar primeiro processo
             </button>
           </div>
         ) : (
+          <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
             <thead>
-              <tr style={{ background: '#f9fafb' }}>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: '500', color: '#6b7280', fontSize: '13px' }}>Marca / titular</th>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: '500', color: '#6b7280', fontSize: '13px' }}>Processo</th>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: '500', color: '#6b7280', fontSize: '13px' }}>Status</th>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: '500', color: '#6b7280', fontSize: '13px' }}>Etapa do fluxo</th>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: '500', color: '#6b7280', fontSize: '13px' }}>Prazo</th>
-                <th style={{ textAlign: 'left', padding: '12px 16px', fontWeight: '500', color: '#6b7280', fontSize: '13px' }}>Responsável</th>
-                <th style={{ padding: '12px 16px' }}></th>
+              <tr style={{ background: cor.fundo, borderBottom: `1px solid ${cor.borda}` }}>
+                <th style={estilo.th}>Marca / titular</th>
+                <th style={estilo.th}>Processo</th>
+                <th style={estilo.th}>Status</th>
+                <th style={estilo.th}>Etapa do fluxo</th>
+                <th style={estilo.th}>Prazo</th>
+                <th style={estilo.th}>Responsável</th>
+                <th style={estilo.th}></th>
               </tr>
             </thead>
             <tbody>
-              {processosFiltrados.map((p, i) => {
+              {processosFiltrados.map((p) => {
                 const titular = p.clientes ? (p.clientes.tipo_pessoa === 'PJ' ? p.clientes.razao_social : p.clientes.nome_completo) : '—'
-                const corStatus = STATUS_CORES[p.status] || { bg: '#f9fafb', color: '#6b7280' }
+                const corStatus = STATUS_PROCESSO[p.status] || STATUS_PADRAO
                 const prazoInfo = textoPrazo(p.prazo)
                 const etapaNome = p.etapas_processo?.nome || '—'
                 const etapaOrdem = p.etapas_processo?.ordem || 0
                 return (
-                  <tr key={p.id} style={{ borderTop: '1px solid #f3f4f6', background: i % 2 === 0 ? '#fff' : '#fafafa' }}>
-                    <td style={{ padding: '12px 16px' }}>
+                  <tr key={p.id} style={{ borderTop: `1px solid ${cor.borda}` }}>
+                    <td style={estilo.td}>
                       <button onClick={() => router.push(`/processos/${p.id}`)}
-                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}>
-                        <div style={{ fontWeight: '600', color: '#0F6E56' }}>{p.marca}</div>
-                        <div style={{ fontSize: '12px', color: '#9ca3af' }}>{titular}</div>
+                        style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', fontFamily: 'inherit' }}>
+                        <div style={{ fontWeight: '600', color: cor.primarioLink }}>{p.marca}</div>
+                        <div style={{ fontSize: '12px', color: cor.textoSec }}>{titular}</div>
                       </button>
                     </td>
-                    <td style={{ padding: '12px 16px', color: '#374151' }}>
-                      <div>{p.numero_processo || '—'}</div>
-                      <div style={{ fontSize: '12px', color: '#9ca3af' }}>{p.classe_nice ? `NCL ${p.classe_nice}` : ''}{p.natureza ? ` · ${p.natureza}` : ''}</div>
+                    <td style={{ ...estilo.td, color: cor.texto }}>
+                      <div style={{ fontFamily: fonte.mono, fontSize: '12px' }}>{p.numero_processo || '—'}</div>
+                      <div style={{ fontSize: '12px', color: cor.textoSec }}>{p.classe_nice ? `NCL ${p.classe_nice}` : ''}{p.natureza ? ` · ${p.natureza}` : ''}</div>
                     </td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <span style={{ fontSize: '12px', padding: '2px 8px', borderRadius: '99px', background: corStatus.bg, color: corStatus.color, fontWeight: '500' }}>
-                        {p.status}
-                      </span>
+                    <td style={estilo.td}>
+                      <StatusBadge status={p.status} />
                     </td>
-                    <td style={{ padding: '12px 16px' }}>
-                      <BarraEtapa etapaOrdem={etapaOrdem} totalEtapas={totalEtapas} />
-                      <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>{etapaNome} · etapa {etapaOrdem} de {totalEtapas}</div>
+                    <td style={estilo.td}>
+                      <BarraEtapa etapaOrdem={etapaOrdem} totalEtapas={totalEtapas} corAtiva={corStatus.ponto} />
+                      <div style={{ fontSize: '12px', color: cor.textoSec, marginTop: '4px', whiteSpace: 'nowrap' }}>{etapaNome} · etapa {etapaOrdem} de {totalEtapas}</div>
                     </td>
-                    <td style={{ padding: '12px 16px', color: prazoInfo.vencido ? '#dc2626' : '#374151', fontWeight: prazoInfo.vencido ? '600' : '400' }}>
+                    <td style={{ ...estilo.td, whiteSpace: 'nowrap', color: prazoInfo.vencido ? cor.perigoTexto : cor.texto, fontWeight: prazoInfo.vencido ? '600' : '400' }}>
                       {prazoInfo.texto}
                     </td>
-                    <td style={{ padding: '12px 16px' }}>
+                    <td style={estilo.td}>
                       {p.perfis ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Avatar nome={p.perfis.nome || p.perfis.email} />
-                          <span style={{ color: '#374151' }}>{p.perfis.nome || p.perfis.email}</span>
+                          <span style={{ color: cor.texto }}>{p.perfis.nome || p.perfis.email}</span>
                         </div>
                       ) : '—'}
                     </td>
-                    <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                      <button onClick={() => excluir(p.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '13px', fontWeight: '500' }}>
+                    <td style={{ ...estilo.td, textAlign: 'right' }}>
+                      <button onClick={() => excluir(p.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: cor.perigoTexto, fontSize: '13px', fontWeight: '500', fontFamily: 'inherit' }}>
                         Excluir
                       </button>
                     </td>
@@ -358,6 +340,13 @@ export default function Processos() {
               })}
             </tbody>
           </table>
+          </div>
+        )}
+
+        {!carregando && processosFiltrados.length > 0 && (
+          <div style={{ padding: '12px 16px', borderTop: `1px solid ${cor.borda}`, fontSize: '13px', color: cor.textoSec }}>
+            Exibindo <strong style={{ color: cor.texto }}>{processosFiltrados.length}</strong> de {processos.length} processos
+          </div>
         )}
       </div>
     </Layout>
