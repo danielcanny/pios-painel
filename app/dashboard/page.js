@@ -64,14 +64,17 @@ export default function Dashboard() {
         return
       }
 
-      const [procRes, etapasRes, movRes] = await Promise.all([
-        supabase.from('processos').select('*, perfis(*)').order('created_at', { ascending: false }),
+      const [procRes, perfRes, etapasRes, movRes] = await Promise.all([
+        supabase.from('processos').select('*').order('created_at', { ascending: false }),
+        supabase.from('perfis').select('*'),
         supabase.from('etapas_processo').select('*').order('ordem', { ascending: true }),
         supabase.from('movimentacoes').select('*').order('created_at', { ascending: false }).limit(5),
       ])
 
       if (!ativo) return
-      setProcessos(procRes.data || [])
+      // processos.responsavel_id aponta para auth.users, então o responsável é ligado pela lista de perfis
+      const perfisPorId = Object.fromEntries((perfRes.data || []).map(p => [p.id, p]))
+      setProcessos((procRes.data || []).map(p => ({ ...p, perfis: perfisPorId[p.responsavel_id] || null })))
       setEtapas(etapasRes.data || [])
       setMovimentacoes(movRes.data || [])
       setCarregando(false)

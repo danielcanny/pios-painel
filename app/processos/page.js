@@ -120,12 +120,14 @@ export default function Processos() {
   async function carregarTudo() {
     setCarregando(true)
     const [procRes, cliRes, perfRes, etapasRes] = await Promise.all([
-      supabase.from('processos').select('*, clientes(*), perfis(*), etapas_processo(*)').order('created_at', { ascending: false }),
+      supabase.from('processos').select('*, clientes(*), etapas_processo(*)').order('created_at', { ascending: false }),
       supabase.from('clientes').select('*'),
       supabase.from('perfis').select('*'),
       supabase.from('etapas_processo').select('*').order('ordem', { ascending: true }),
     ])
-    setProcessos(procRes.data || [])
+    // processos.responsavel_id aponta para auth.users, então o responsável é ligado aqui pela lista de perfis
+    const perfisPorId = Object.fromEntries((perfRes.data || []).map(p => [p.id, p]))
+    setProcessos((procRes.data || []).map(p => ({ ...p, perfis: perfisPorId[p.responsavel_id] || null })))
     setClientes(cliRes.data || [])
     setPerfis(perfRes.data || [])
     setEtapas(etapasRes.data || [])
@@ -152,13 +154,18 @@ export default function Processos() {
     }
     setSalvando(true)
     const etapaInicial = etapas.find(e => e.ordem === 1)
-    await supabase.from('processos').insert([{
+    const { error } = await supabase.from('processos').insert([{
       ...form,
       prazo: form.prazo || null,
+      responsavel_id: form.responsavel_id || null,
       etapa_id: etapaInicial ? etapaInicial.id : null,
     }])
-    setMostrarForm(false)
     setSalvando(false)
+    if (error) {
+      alert('Não foi possível salvar o processo: ' + error.message)
+      return
+    }
+    setMostrarForm(false)
     carregarTudo()
   }
 
