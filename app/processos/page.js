@@ -3,10 +3,11 @@ import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
 import Layout from '../components/Layout'
-import PageHeader from '../components/PageHeader'
+import PageHeader, { Conteudo } from '../components/PageHeader'
 import StatusBadge from '../components/StatusBadge'
 import Avatar from '../components/Avatar'
 import { cor, fonte, estilo, STATUS_PROCESSO, STATUS_PADRAO } from '../../lib/tema'
+import { textoPrazo } from '../../lib/prazo'
 
 const NATUREZAS = ['Nominativa', 'Mista', 'Figurativa']
 const STATUS_OPCOES = ['Em andamento', 'Prazo vencido', 'Requer atenção', 'Arquivado', 'Concluído']
@@ -90,23 +91,6 @@ function BarraEtapa({ etapaOrdem, totalEtapas, corAtiva }) {
   )
 }
 
-function diasRestantes(prazo) {
-  if (!prazo) return null
-  const hoje = new Date()
-  hoje.setHours(0, 0, 0, 0)
-  const data = new Date(prazo + 'T00:00:00')
-  const diff = Math.round((data - hoje) / (1000 * 60 * 60 * 24))
-  return diff
-}
-
-function textoPrazo(prazo) {
-  const dias = diasRestantes(prazo)
-  if (dias === null) return { texto: '—', vencido: false }
-  if (dias < 0) return { texto: `vencido há ${Math.abs(dias)} dia(s)`, vencido: true }
-  if (dias === 0) return { texto: 'vence hoje', vencido: false, urgente: true }
-  return { texto: `em ${dias} dia(s)`, vencido: false }
-}
-
 export default function Processos() {
   const [processos, setProcessos] = useState([])
   const [clientes, setClientes] = useState([])
@@ -125,6 +109,7 @@ export default function Processos() {
   useEffect(() => {
     verificarSessao()
     carregarTudo()
+    if (new URLSearchParams(window.location.search).get('novo') === '1') abrirNovo()
   }, [])
 
   async function verificarSessao() {
@@ -199,8 +184,11 @@ export default function Processos() {
       <PageHeader
         titulo="Processos"
         descricao="Carteira completa de pedidos e registros de marca, com etapa atual, prazo vigente e responsável."
-      />
+      >
+        <button onClick={abrirNovo} style={{ ...estilo.botaoPrimario, padding: '8px 14px' }}>+ Novo processo</button>
+      </PageHeader>
 
+      <Conteudo>
       {/* Modal de cadastro */}
       {mostrarForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(18,18,20,0.45)', zIndex: 50, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '32px 16px', overflowY: 'auto' }}>
@@ -349,6 +337,7 @@ export default function Processos() {
           </div>
         )}
       </div>
+      </Conteudo>
     </Layout>
   )
 }

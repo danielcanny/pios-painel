@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
-import { cor } from '../../lib/tema'
+import { cor, fonte } from '../../lib/tema'
 
 const itens = [
   { section: 'Operação', label: 'Painel', href: '/dashboard', svg: 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z' },
@@ -31,6 +31,8 @@ export default function Layout({ children, titulo, botaoAcao }) {
   const [busca, setBusca] = useState(false)
   const [termo, setTermo] = useState('')
   const [usuario, setUsuario] = useState(null)
+  const [totalProcessos, setTotalProcessos] = useState(null)
+  const [resultados, setResultados] = useState([])
   const router = useRouter()
   const pathname = usePathname()
 
@@ -38,7 +40,22 @@ export default function Layout({ children, titulo, botaoAcao }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) setUsuario(session.user)
     })
+    supabase.from('processos').select('*', { count: 'exact', head: true }).then(({ count }) => {
+      if (count !== null) setTotalProcessos(count)
+    })
   }, [])
+
+  useEffect(() => {
+    const t = termo.replace(/[,()%*\\]/g, '').trim()
+    if (t.length < 2) return
+    let ativo = true
+    const espera = setTimeout(async () => {
+      const { data } = await supabase.from('processos').select('id, marca, numero_processo')
+        .or(`marca.ilike.%${t}%,numero_processo.ilike.%${t}%`).limit(6)
+      if (ativo) setResultados(data || [])
+    }, 250)
+    return () => { ativo = false; clearTimeout(espera) }
+  }, [termo])
 
   useEffect(() => {
     function aoPressionar(e) {
@@ -66,13 +83,14 @@ export default function Layout({ children, titulo, botaoAcao }) {
   const iniciais = usuario?.email?.substring(0, 2).toUpperCase() || 'U'
   const paginaAtual = itens.find(i => pathname === i.href || pathname.startsWith(i.href + '/'))
   const itensBusca = itens.filter(i => i.label.toLowerCase().includes(termo.toLowerCase()))
+  const processosBusca = termo.trim().length >= 2 ? resultados : []
 
   return (
     <div style={{ display: 'flex', height: '100vh', background: cor.fundo, overflow: 'hidden', fontFamily: 'inherit', color: cor.texto }}>
 
-      <aside style={{ width: aberta ? '232px' : '0', overflow: 'hidden', transition: 'width 0.3s', background: cor.menu, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+      <aside style={{ width: aberta ? '256px' : '0', overflow: 'hidden', transition: 'width 0.3s', background: cor.menu, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
 
-        <div style={{ padding: '16px', borderBottom: `1px solid ${cor.menuBorda}`, minWidth: '232px' }}>
+        <div style={{ padding: '16px', borderBottom: `1px solid ${cor.menuBorda}`, minWidth: '256px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <div style={{ width: '32px', height: '32px', background: cor.primario, borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ color: cor.primarioTexto, fontSize: '14px', fontWeight: '700' }}>P</span>
@@ -84,7 +102,7 @@ export default function Layout({ children, titulo, botaoAcao }) {
           </div>
         </div>
 
-        <nav style={{ flex: 1, padding: '12px 8px', overflowY: 'auto', minWidth: '232px' }}>
+        <nav style={{ flex: 1, padding: '12px 8px', overflowY: 'auto', minWidth: '256px' }}>
           {sections.map(section => (
             <div key={section} style={{ marginBottom: '12px' }}>
               <p style={{ padding: '4px 12px', fontSize: '11px', fontWeight: '500', color: cor.menuTexto, margin: '0 0 4px', opacity: 0.8 }}>
@@ -97,7 +115,10 @@ export default function Layout({ children, titulo, botaoAcao }) {
                     <span style={{ display: 'flex', color: ativo ? cor.primario : cor.menuTexto }}>
                       <Icon path={item.svg} />
                     </span>
-                    <span>{item.label}</span>
+                    <span style={{ flex: 1 }}>{item.label}</span>
+                    {item.href === '/processos' && totalProcessos !== null && (
+                      <span style={{ fontSize: '12px', color: cor.menuTexto }}>{totalProcessos}</span>
+                    )}
                   </Link>
                 )
               })}
@@ -105,7 +126,7 @@ export default function Layout({ children, titulo, botaoAcao }) {
           ))}
         </nav>
 
-        <div style={{ borderTop: `1px solid ${cor.menuBorda}`, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px', minWidth: '232px' }}>
+        <div style={{ borderTop: `1px solid ${cor.menuBorda}`, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '10px', minWidth: '256px' }}>
           <div style={{ width: '32px', height: '32px', background: 'rgba(255,255,255,0.10)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <span style={{ color: cor.menuTextoAtivo, fontSize: '12px', fontWeight: '600' }}>{iniciais}</span>
           </div>
@@ -134,9 +155,9 @@ export default function Layout({ children, titulo, botaoAcao }) {
             {titulo && titulo !== 'Painel' && <span style={{ fontSize: '14px', color: cor.texto, fontWeight: '500' }}>› {titulo}</span>}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button onClick={abrirBusca} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: cor.card, border: `1px solid ${cor.borda}`, borderRadius: '8px', padding: '7px 12px', width: '240px', fontSize: '13px', color: cor.textoSec, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <button onClick={abrirBusca} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: cor.card, border: `1px solid ${cor.borda}`, borderRadius: '8px', padding: '7px 12px', width: '300px', fontSize: '13px', color: cor.textoSec, cursor: 'pointer', fontFamily: 'inherit' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-              <span style={{ flex: 1, textAlign: 'left' }}>Ir para...</span>
+              <span style={{ flex: 1, textAlign: 'left' }}>Buscar marca, nº do processo…</span>
               <span style={{ fontSize: '11px', background: cor.fundoSuave, borderRadius: '4px', padding: '1px 6px' }}>Ctrl K</span>
             </button>
             <button aria-label="Notificações" style={{ background: 'none', border: 'none', cursor: 'pointer', color: cor.textoSec, display: 'flex' }}>
@@ -149,7 +170,7 @@ export default function Layout({ children, titulo, botaoAcao }) {
             )}
           </div>
         </header>
-        <main style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+        <main style={{ flex: 1, overflowY: 'auto' }}>
           {children}
         </main>
       </div>
@@ -159,10 +180,22 @@ export default function Layout({ children, titulo, botaoAcao }) {
           <div onClick={(e) => e.stopPropagation()} style={{ background: cor.card, borderRadius: '12px', boxShadow: '0 20px 60px rgba(0,0,0,0.25)', width: '100%', maxWidth: '480px', margin: '0 16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderBottom: `1px solid ${cor.borda}` }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={cor.textoClaro} strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-              <input autoFocus value={termo} onChange={e => setTermo(e.target.value)} placeholder="Ir para uma página..." style={{ flex: 1, border: 'none', outline: 'none', fontSize: '14px', fontFamily: 'inherit', color: cor.texto, background: 'transparent' }} />
+              <input autoFocus value={termo} onChange={e => setTermo(e.target.value)} placeholder="Buscar marca, nº do processo ou página…" style={{ flex: 1, border: 'none', outline: 'none', fontSize: '14px', fontFamily: 'inherit', color: cor.texto, background: 'transparent' }} />
             </div>
             <div style={{ padding: '8px' }}>
-              {itensBusca.length === 0 && <p style={{ padding: '8px 12px', fontSize: '14px', color: cor.textoSec, margin: 0 }}>Nenhum resultado.</p>}
+              {processosBusca.length > 0 && (
+                <>
+                  <p style={{ padding: '4px 12px', fontSize: '11px', fontWeight: '500', color: cor.textoSec, margin: 0 }}>Processos</p>
+                  {processosBusca.map(p => (
+                    <button key={p.id} onClick={() => { router.push(`/processos/${p.id}`); setBusca(false) }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', width: '100%', padding: '8px 12px', background: 'none', border: 'none', borderRadius: '8px', fontSize: '14px', color: cor.texto, cursor: 'pointer', fontFamily: 'inherit' }}>
+                      <span style={{ fontWeight: '500' }}>{p.marca}</span>
+                      <span style={{ fontFamily: fonte.mono, fontSize: '12px', color: cor.textoSec }}>{p.numero_processo}</span>
+                    </button>
+                  ))}
+                  <p style={{ padding: '8px 12px 4px', fontSize: '11px', fontWeight: '500', color: cor.textoSec, margin: 0 }}>Páginas</p>
+                </>
+              )}
+              {itensBusca.length === 0 && processosBusca.length === 0 && <p style={{ padding: '8px 12px', fontSize: '14px', color: cor.textoSec, margin: 0 }}>Nenhum resultado.</p>}
               {itensBusca.map(item => (
                 <button key={item.href} onClick={() => { router.push(item.href); setBusca(false) }} style={{ display: 'flex', alignItems: 'center', gap: '10px', width: '100%', padding: '8px 12px', background: 'none', border: 'none', borderRadius: '8px', fontSize: '14px', color: cor.texto, cursor: 'pointer', fontFamily: 'inherit' }}>
                   <span style={{ display: 'flex', color: cor.textoSec }}><Icon path={item.svg} /></span>

@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../lib/supabase'
 import Layout from '../components/Layout'
-import PageHeader from '../components/PageHeader'
+import PageHeader, { Conteudo } from '../components/PageHeader'
 import { cor, estilo } from '../../lib/tema'
 
 const ORIGENS = ['Indicacao', 'Site', 'Instagram', 'Parceiro contador', 'Google', 'Outro']
@@ -120,8 +120,11 @@ export default function Clientes() {
   return (
     <Layout titulo="Clientes" botaoAcao={{ label: 'Novo cliente', onClick: () => setMostrarForm(true) }}>
 
-      <PageHeader titulo="Clientes" descricao="Gerencie sua carteira de clientes." />
+      <PageHeader titulo="Clientes" descricao="Gerencie sua carteira de clientes.">
+        <button onClick={() => setMostrarForm(true)} style={{ ...estilo.botaoPrimario, padding: '8px 14px' }}>+ Novo cliente</button>
+      </PageHeader>
 
+      <Conteudo>
       {/* Modal de cadastro */}
       {mostrarForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(18,18,20,0.45)', zIndex: 50, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '32px 16px', overflowY: 'auto' }}>
@@ -310,6 +313,7 @@ export default function Clientes() {
           </div>
         )}
       </div>
+      </Conteudo>
     </Layout>
   )
 }
