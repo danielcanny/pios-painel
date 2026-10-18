@@ -279,7 +279,7 @@ export default function FormTitular({ id }) {
           <Texto label="Número INPI" value={f.numero_inpi} onChange={v => mudar('numero_inpi', v)} dica="Cadastro no e-INPI." />
           <Texto label="Nome curto da pasta" obrigatorio value={f.nome_curto_pasta} mono
             onChange={v => { curtoManual.current = true; mudar('nome_curto_pasta', v.toUpperCase().replace(/[^A-Z0-9-]/g, '')) }}
-            erro={erros.nome_curto_pasta} dica="Ex.: HUDSON-SIMOES, sem acento. Usado no nome da pasta." />
+            erro={erros.nome_curto_pasta} dica="Maiúsculas, sem acento, com hífen no lugar do espaço. Usado no nome da pasta." />
           {!pj && (
             <>
               <Texto label="Nacionalidade" value={f.nacionalidade} onChange={v => mudar('nacionalidade', v)} />

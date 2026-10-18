@@ -9,7 +9,7 @@ import { cor, fonte, estilo } from '../../lib/tema'
 import { ENQUADRAMENTOS, rotulo } from '../../lib/campos'
 import { formatarCpfCnpj, soDigitos } from '../../lib/validadores'
 
-const normalizar = (t) => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const normalizar = (t) => (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
 export default function Titulares() {
   const [titulares, setTitulares] = useState([])

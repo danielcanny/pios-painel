@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { cor, estilo } from '../../lib/tema'
 import { Campo } from './Campos'
 
-const normalizar = (t) => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const normalizar = (t) => (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
 // Busca por digitação. opcoes: [{ id, titulo, sub }]
 export default function Autocomplete({ label, opcoes, valor, onSelect, placeholder = 'Buscar…', obrigatorio, erro, dica, span, limpavel }) {

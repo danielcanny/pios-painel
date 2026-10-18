@@ -10,7 +10,7 @@ import { cor, fonte, estilo, STATUS_PROCESSO, STATUS_PADRAO } from '../../lib/te
 import { textoPrazo } from '../../lib/prazo'
 import { FORMAS_APRESENTACAO, rotulo } from '../../lib/campos'
 
-const normalizar = (t) => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+const normalizar = (t) => (t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
 function BarraEtapa({ etapaOrdem, totalEtapas, corAtiva }) {
   const blocos = Array.from({ length: totalEtapas }, (_, i) => i < etapaOrdem)

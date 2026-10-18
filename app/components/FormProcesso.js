@@ -323,7 +323,7 @@ export default function FormProcesso({ id }) {
           <Campo label="Situação do número">
             <div style={{ ...estilo.input, background: cor.fundoSuave, color: cor.textoSec }}>{f.numero_processo ? 'Depositado' : 'Pendente'}</div>
           </Campo>
-          <Texto label="Grupo / família" value={f.grupo_familia} onChange={v => mudar('grupo_familia', v)} dica="Ex.: as classes de DENATURE." />
+          <Texto label="Grupo / família" value={f.grupo_familia} onChange={v => mudar('grupo_familia', v)} dica="Reúne pedidos da mesma marca ou da mesma família de marcas." />
           <Autocomplete label="Processo de origem" opcoes={opcoesProcessos} valor={f.processo_origem_id} limpavel
             onSelect={v => mudar('processo_origem_id', v)} placeholder="Buscar processo…" dica="Reapresentação, divisão ou novo pedido." />
           <Selecao label="Responsável interno" value={f.responsavel_id} onChange={v => mudar('responsavel_id', v)} opcoes={opcoesPerfis} />
@@ -337,7 +337,7 @@ export default function FormProcesso({ id }) {
           <Texto label="Elemento nominativo" obrigatorio value={f.marca} onChange={v => mudar('marca', v)} erro={erros.marca} dica="Como depositado no INPI." />
           <Texto label="Nome curto" obrigatorio value={f.nome_curto} mono
             onChange={v => { curtoManual.current = true; mudar('nome_curto', v.toUpperCase().replace(/[^A-Z0-9-]/g, '')) }}
-            erro={erros.nome_curto} dica="Para a pasta, ex.: DAMI-STORE." />
+            erro={erros.nome_curto} dica="Sem acento e sem espaços. Usado no nome da pasta." />
           <Texto label="Arquivo da marca (link)" obrigatorio={['figurativa', 'mista'].includes(f.forma_apresentacao)} span={2} tipo="url" placeholder="https://"
             value={f.arquivo_marca_url} onChange={v => mudar('arquivo_marca_url', v)} erro={erros.arquivo_marca_url} dica="Para marca figurativa e mista." />
           <Texto label="Viabilidade: data" tipo="date" value={f.viabilidade_data} onChange={v => mudar('viabilidade_data', v)} />
